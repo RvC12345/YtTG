@@ -16,4 +16,4 @@ RUN apt-get update && \
 COPY . .
 
 # Run the bot
-CMD gunicorn app:app & ["python", "bot.py"]
+CMD gunicorn app:app & python3 bot.py

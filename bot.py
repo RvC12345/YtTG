@@ -59,7 +59,8 @@ async def progress_report(client, message):
     global progress, current_action
     await message.reply_text(f"{current_action}... {progress}%" if current_action != "Idle" else "No active download/upload.")
 
-@app.on_message(filters.text & filters.private)
+#@app.on_message(filters.text & filters.private)
+@app.on_message(filters.regex(pattern=".*http.*"))
 async def youtube_download(client, message):
     url = message.text
     await message.reply_text(

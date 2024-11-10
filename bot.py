@@ -82,7 +82,7 @@ async def button_callback(client, callback_query):
   global progress, current_action
   if "_" in callback_query.data:
     data = callback_query.data.split("_")
-    resolution, #url = data[0], "_".join(data[1:])
+    resolution = data[0] #,url = data[0], "_".join(data[1:])
     if callback_query.from_user.id in tasks:
         url = tasks[callback_query.from_user.id]
         #await callback_query.answer("Downloading...", show_alert=True)

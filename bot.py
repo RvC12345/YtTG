@@ -1,6 +1,6 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from pytube import YouTube
+import yt-dlp
 from moviepy.editor import VideoFileClip
 import os
 

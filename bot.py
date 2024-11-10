@@ -104,7 +104,7 @@ async def button_callback(client, callback_query):
         await callback_query.message.edit_text("Downloading......",reply_markup=prb)
 
         current_action = "Downloading"
-        file_path = download_video(url, resolution, callback_query)
+        file_path = download_video(url, resolution)
     
         if file_path:
            # Notify that download is complete and upload is starting

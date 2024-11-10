@@ -1,6 +1,6 @@
 pyrogram
 tgcrypto
-pytube
+yt-dlp
 moviepy
 Flask==1.1.2
 gunicorn==20.1.0

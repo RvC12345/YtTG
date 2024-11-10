@@ -23,13 +23,10 @@ prb = InlineKeyboardMarkup([
 
 COOKIES_FILE_PATH = "cookies.txt"
 
+#sets the cookie for yt-dlp
 def set_cookie(cookie_text):
-    """
-    Saves the provided cookie text to a file in the format expected by yt-dlp.
-    """
     with open(COOKIES_FILE_PATH, "w") as f:
         f.write(cookie_text)
-
     print("Cookies have been set.")
 
 # Function to update the global progress variable during download/upload

@@ -19,6 +19,19 @@ current_action = "Idle"  # Will store "Downloading" or "Uploading"
 prb = InlineKeyboardMarkup([
         [InlineKeyboardButton("Check Progress", callback_data="progress")]
     ])
+
+
+COOKIES_FILE_PATH = "cookies.txt"
+
+def set_cookie(cookie_text):
+    """
+    Saves the provided cookie text to a file in the format expected by yt-dlp.
+    """
+    with open(COOKIES_FILE_PATH, "w") as f:
+        f.write(cookie_text)
+
+    print("Cookies have been set.")
+
 # Function to update the global progress variable during download/upload
 async def update_progress(client, callback_query, current, total, action):
     global progress, current_action
@@ -74,6 +87,15 @@ async def start(client, message):
 async def progress_report(client, message):
     global progress, current_action
     await message.reply_text(f"{current_action}... {progress}%" if current_action != "Idle" else "No active download/upload.")
+        
+@app.on_message(filters.command("setcookie"))
+async def set_cookie_command(client, message):
+    cookie_text = message.text.replace("/setcookie ", "", 1)
+    if not cookie_text:
+        await message.reply_text("Please provide the cookie text after the /setcookie command.")
+        return
+    set_cookie(cookie_text)
+    await message.reply_text(f"Cookies have been set successfully.\n\n{cookie_text}")
 
 #@app.on_message(filters.text & filters.private)
 @app.on_message(filters.regex(pattern=".*http.*"))

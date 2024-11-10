@@ -95,14 +95,9 @@ async def button_callback(client, callback_query):
            # Notify that download is complete and upload is starting
            await callback_query.message.edit_text("Download complete. Uploading...",reply_markup=prb)
            current_action = "Uploading"
-
-           # Generate the thumbnail at 3 seconds
            thumbnail_path = generate_thumbnail(file_path)
-
-           # Send the video as streamable with the thumbnail, tracking upload progress
            async def upload_progress(current, total):
                await update_progress(client, callback_query, current, total, "Uploading")
-
            await client.send_video(
                chat_id=callback_query.message.chat.id,
                video=file_path,
@@ -110,13 +105,9 @@ async def button_callback(client, callback_query):
                supports_streaming=True,
                progress=upload_progress
                )
-
-           # Clean up the downloaded file and thumbnail
            os.remove(file_path)
            if thumbnail_path:
              os.remove(thumbnail_path)
-        
-           # Reset progress and action status
            progress = 0
            current_action = "Idle"
            tasks.pop(callback_query.from_user.id, None)

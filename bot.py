@@ -14,6 +14,7 @@ app = Client("yt_downloader_bot", bot_token=BOT_TOKEN, api_id=API_ID, api_hash=A
 
 # Global variables for tracking progress and current action
 progress = 0
+tasks={}
 current_action = "Idle"  # Will store "Downloading" or "Uploading"
 prb = InlineKeyboardMarkup([
         [InlineKeyboardButton("Check Progress", callback_data="progress")]
@@ -62,15 +63,17 @@ async def progress_report(client, message):
 #@app.on_message(filters.text & filters.private)
 @app.on_message(filters.regex(pattern=".*http.*"))
 async def youtube_download(client, message):
+    global tasks
     url = message.text
+    tasks[message.from_user.id] = url
     await message.reply_text(
         "Choose a resolution:", 
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("1080p", callback_data=f"1080p_{url}")],
-            [InlineKeyboardButton("720p", callback_data=f"720p_{url}")],
-            [InlineKeyboardButton("480p", callback_data=f"480p_{url}")],
-            [InlineKeyboardButton("360p", callback_data=f"360p_{url}")],
-            [InlineKeyboardButton("240p", callback_data=f"240p_{url}")]
+            [InlineKeyboardButton("1080p", callback_data=f"1080p_")],
+            [InlineKeyboardButton("720p", callback_data=f"720p_")],
+            [InlineKeyboardButton("480p", callback_data=f"480p_")],
+            [InlineKeyboardButton("360p", callback_data=f"360p_")],
+            [InlineKeyboardButton("240p", callback_data=f"360p_")]
         ])
     )
 
@@ -79,47 +82,49 @@ async def button_callback(client, callback_query):
   global progress, current_action
   if "_" in callback_query.data:
     data = callback_query.data.split("_")
-    resolution, url = data[0], "_".join(data[1:])
+    resolution, #url = data[0], "_".join(data[1:])
+    if callback_query.from_user.id in tasks:
+        url = tasks[callback_query.from_user.id]
+        #await callback_query.answer("Downloading...", show_alert=True)
+        await callback_query.message.edit_text("Downloading......",reply_markup=prb)
 
-    # Notify the user that download has started
-    #await callback_query.answer("Downloading...", show_alert=True)
-    await callback_query.message.edit_text("Downloading......",reply_markup=prb)
-      
-    # Download the video
-    current_action = "Downloading"
-    file_path = download_video(url, resolution, callback_query)
+        current_action = "Downloading"
+        file_path = download_video(url, resolution, callback_query)
     
-    if file_path:
-        # Notify that download is complete and upload is starting
-        await callback_query.message.edit_text("Download complete. Uploading...",reply_markup=prb)
-        current_action = "Uploading"
+        if file_path:
+           # Notify that download is complete and upload is starting
+           await callback_query.message.edit_text("Download complete. Uploading...",reply_markup=prb)
+           current_action = "Uploading"
 
-        # Generate the thumbnail at 3 seconds
-        thumbnail_path = generate_thumbnail(file_path)
+           # Generate the thumbnail at 3 seconds
+           thumbnail_path = generate_thumbnail(file_path)
 
-        # Send the video as streamable with the thumbnail, tracking upload progress
-        async def upload_progress(current, total):
-            await update_progress(client, callback_query, current, total, "Uploading")
+           # Send the video as streamable with the thumbnail, tracking upload progress
+           async def upload_progress(current, total):
+               await update_progress(client, callback_query, current, total, "Uploading")
 
-        await client.send_video(
-            chat_id=callback_query.message.chat.id,
-            video=file_path,
-            thumb=thumbnail_path,
-            supports_streaming=True,
-            progress=upload_progress
-        )
+           await client.send_video(
+               chat_id=callback_query.message.chat.id,
+               video=file_path,
+               thumb=thumbnail_path,
+               supports_streaming=True,
+               progress=upload_progress
+               )
 
-        # Clean up the downloaded file and thumbnail
-        os.remove(file_path)
-        if thumbnail_path:
-            os.remove(thumbnail_path)
+           # Clean up the downloaded file and thumbnail
+           os.remove(file_path)
+           if thumbnail_path:
+             os.remove(thumbnail_path)
         
-        # Reset progress and action status
-        progress = 0
-        current_action = "Idle"
-        await callback_query.message.delete()
+           # Reset progress and action status
+           progress = 0
+           current_action = "Idle"
+           tasks.pop(callback_query.from_user.id, None)
+           await callback_query.message.delete()
+        else:
+           await callback_query.message.edit_text("The requested resolution is not available for this video.")
     else:
-        await callback_query.message.edit_text("The requested resolution is not available for this video.")
+       await callback_query.message.edit_text("Downloading......",reply_markup=prb)
 
   else:
     if "pr" in callback_query.data:

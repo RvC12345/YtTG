@@ -8,6 +8,8 @@ import os
 BOT_TOKEN = os.environ.get("tk")
 API_ID = int(os.environ.get("apiid")) # Replace with your API ID
 API_HASH = os.environ.get("apihash")  # Replace with your API Hash
+UN = os.getenv("ytemail")
+PW = os.getenv("ytpw")
 
 # Initialize the Pyrogram client
 app = Client("yt_downloader_bot", bot_token=BOT_TOKEN, api_id=API_ID, api_hash=API_HASH)
@@ -48,13 +50,14 @@ def download_hook(d):
 # Function to download YouTube video with progress tracking
 def download_video(url, resolution):
     global progress, current_action
-
     ydl_opts = {
         'format': f'bestvideo[height<={resolution}]+bestaudio/best[height<={resolution}]',
         'outtmpl': f'{resolution}_video.mp4',
         'quiet': True,
         'progress_hooks': [download_hook],  # Add progress hook
-        'cookies': COOKIES_FILE_PATH
+        #'cookies': COOKIES_FILE_PATH
+        'username': UN,
+        'password': PW,
     }
 
     try:

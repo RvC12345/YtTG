@@ -24,22 +24,37 @@ async def update_progress(client, callback_query, current, total, action):
     global progress, current_action
     progress = int(current * 100 / total)
     current_action = action
+        
+def download_hook(d):
+    global progress, current_action
+
+    if d['status'] == 'downloading':
+        progress = d.get('downloaded_bytes', 0) / d.get('total_bytes', 1) * 100
+        current_action = "Downloading"
+    elif d['status'] == 'finished':
+        progress = 100
+        current_action = "Download complete"
 
 # Function to download YouTube video with progress tracking
-def download_video(url, resolution, callback_query):
-    yt = YouTube(url, on_progress_callback=lambda stream, chunk, bytes_remaining: 
-                 app.loop.run_until_complete(update_progress(app, callback_query, yt.length * 1024 * 1024 - bytes_remaining, yt.length * 1024 * 1024, "Downloading")))
-    try:
-        video = yt.streams.filter(res=resolution, progressive=True, file_extension='mp4').first()
-        if video:
-            file_path = video.download()
-            return file_path
-        else:
-            return None
-    except Exception as e:
-        print(f"Error: {e}")
-        return None
+def download_video(url, resolution):
+    global progress, current_action
 
+    ydl_opts = {
+        'format': f'bestvideo[height<={resolution}]+bestaudio/best[height<={resolution}]',
+        'outtmpl': f'{resolution}_video.mp4',
+        'quiet': True,
+        'progress_hooks': [download_hook],  # Add progress hook
+    }
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            current_action = "Starting download"
+            info_dict = ydl.extract_info(url, download=True)
+            file_path = ydl.prepare_filename(info_dict)
+            return file_path
+    except Exception as e:
+        print(f"Error downloading video: {e}")
+        return None
 # Function to generate a thumbnail at 3 seconds
 def generate_thumbnail(video_path):
     thumbnail_path = "thumbnail.jpg"

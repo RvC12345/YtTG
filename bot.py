@@ -54,6 +54,7 @@ def download_video(url, resolution):
         'outtmpl': f'{resolution}_video.mp4',
         'quiet': True,
         'progress_hooks': [download_hook],  # Add progress hook
+        'cookies': COOKIES_FILE_PATH
     }
 
     try:
